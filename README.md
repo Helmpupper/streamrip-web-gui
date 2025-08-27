@@ -1,15 +1,20 @@
+![streamrip web interface](https://github.com/AnOddName/streamrip-web-gui/blob/main/demo/home_screen.png?raw=true)
+
 # Streamrip Web GUI
 
-A web interface for [Streamrip](https://github.com/nathom/streamrip), providing an easy-to-use GUI for downloading music from various streaming services.
+A web interface for [Streamrip](https://github.com/nathom/streamrip), providing a GUI for downloading music from various streaming services. 
 
+Streamrip is lit but CLI-only. Having to SSH into my stupid little server each time I wanted to download a track was too much effort for me. 
+(Mainly Quboz for me low key I don't even know if Tidal/Deezer work because I don't have accounts for them)
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+Intended to be used for Docker/Docker-Compose but you can run it locally too.
+
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 ![Docker](https://img.shields.io/badge/docker-ready-green.svg)
 
 ## Features
 
-- **Multi-Service Support**: Download from Qobuz, Tidal, Deezer, SoundCloud, and more
+- **Multi-Service Support**: Download from Qobuz, Tidal, Deezer, SoundCloud
 - **Built-in Search**: Search and download directly from the web interface
 - **Download Management**: Track active downloads, view history, and browse downloaded files
 - **Configuration Editor**: Edit streamrip settings directly from the web interface
@@ -17,7 +22,8 @@ A web interface for [Streamrip](https://github.com/nathom/streamrip), providing 
 
 ## Screenshots
 
-*[Add screenshots of your interface here]*
+![search](https://github.com/AnOddName/streamrip-web-gui/blob/main/demo/search.png?raw=true)
+![download](https://github.com/AnOddName/streamrip-web-gui/blob/main/demo/active_dl.png?raw=true)
 
 ## Prerequisites
 
@@ -27,11 +33,24 @@ A web interface for [Streamrip](https://github.com/nathom/streamrip), providing 
 
 ## Installation
 
+You MUST install and configure Streamrip first.
+
+1. Install Streamrip:
+```bash
+pip install streamrip
+```
+
+2. Configure Streamrip:
+```bash
+rip config
+```
+Follow the [Streamrip configuration guide](https://github.com/nathom/streamrip/wiki/Configuration) to set up your credentials.
+
 ### Option 1: Docker (Recommended)
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/streamrip-web.git
+git clone https://github.com/anoddname/streamrip-web-gui.git
 cd streamrip-web
 ```
 
@@ -65,53 +84,34 @@ docker-compose up -d --build
 
 ### Option 2: Manual Installation
 
-1. Install Streamrip:
-```bash
-pip install streamrip
-```
-
-2. Configure Streamrip:
-```bash
-rip config
-```
-Follow the [Streamrip configuration guide](https://github.com/nathom/streamrip/wiki/Configuration) to set up your streaming service credentials.
-
-3. Clone this repository:
+1. Clone this repository:
 ```bash
 git clone https://github.com/anoddname/streamrip-web.git
 cd streamrip-web
 ```
 
-4. Install dependencies:
+2. Install dependencies:
 ```bash
 pip install flask gunicorn requests
 ```
 
-5. Run the application:
+3. Run the application:
 ```bash
 python app.py
 ```
 
 ## Configuration
 
-### Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `STREAMRIP_CONFIG` | `/config/config.toml` | Path to streamrip configuration file |
-| `DOWNLOAD_DIR` | `/music` | Directory for downloaded music |
-| `MAX_CONCURRENT_DOWNLOADS` | `2` | Maximum simultaneous downloads |
-
 ### Streamrip Configuration
 
 Before using Streamrip Web, you need to configure streamrip with your streaming service credentials:
 
-1. **Qobuz**: Requires email and password (or user_id and token)
+1. **Qobuz**: Requires email and password (or TOKEN)
 2. **Tidal**: Requires email and password  
-3. **Deezer**: Requires ARL token
+3. **Deezer**: Requires ARL
 4. **SoundCloud**: Works without authentication
 
-Refer to the [Streamrip documentation](https://github.com/nathom/streamrip/wiki) for detailed setup instructions.
+Check the [Streamrip documentation](https://github.com/nathom/streamrip/wiki) for instructions.
 
 ## Usage
 
@@ -128,82 +128,25 @@ Refer to the [Streamrip documentation](https://github.com/nathom/streamrip/wiki)
 3. Enter your search query
 4. Click on DOWNLOAD next to any result
 
-### Managing Downloads
-
-- **Active Tab**: View current downloads and their progress
-- **History Tab**: See completed downloads
-- **Files Tab**: Browse downloaded music files
-- **Config Tab**: Edit streamrip configuration
-
-## Project Structure
-
-```
-streamrip-web/
-├── app.py                 # Flask application
-├── Dockerfile            # Docker container definition
-├── requirements.txt      # Python dependencies (create this)
-├── templates/
-│   └── index.html       # Main web interface
-└── static/
-    ├── css/
-    │   └── style.css    # Styling
-    └── js/
-        └── app.js       # Frontend JavaScript
-```
-
-## Development
-
-To run in development mode with hot reload:
-
-```bash
-flask --app app.py run --debug --reload
-```
+- Searches will use the QUALITY from the URL paste dropdown.
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **"Config file not found"**: Make sure streamrip is properly configured. Run `rip config` to create a configuration file.
+1. **"Config file not found"**: Make sure streamrip is properly configured. Run `rip config` to create a configuration file. Also check locations.
 
-2. **Downloads failing/Searches timing out**: Check that your streaming service credentials are valid and properly configured in streamrip.
+2. **Downloads failing/Searches timing out**: Check that your streaming service credentials are valid and properly configured in streamrip. Tidal will timeout, Deezer will throw errors.
 
-3. **Permission errors**: Ensure the download directory has proper write permissions.
+3. **Unable to open database file**: Check paths inside container and configure config.toml inside the container if need be.
 
-4. **Search not working**: Some services (like SoundCloud) don't support all search types (albums/artists).
-
-5. **Unable to open database file**: Check paths inside container and configure config.toml inside the container if need be. 
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- [Streamrip](https://github.com/nathom/streamrip) - The core downloading functionality
-- Flask - Web framework
-- IBM Plex Mono - Typography
+4. **Downloads disappearing from Active DL/History tabs**:  The files were still prolly downloaded, dont worry about it 
 
 ## Disclaimer
 
-This tool is for educational purposes only. Ensure you comply with the terms of service of the streaming platforms you use. Support artists by purchasing their music when possible.
-
-## Support
-
-For issues and questions:
-- Open an issue on GitHub
-- Check existing issues for solutions
-- Refer to Streamrip documentation for service-specific problems
+This tool is for educational purposes only. Ensure you comply with the terms of service of the streaming platforms you use. Support artists by purchasing their music.
 
 ---
+
 
 Fueled by spite
