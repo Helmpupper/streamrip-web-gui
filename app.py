@@ -228,9 +228,6 @@ def config():
         except Exception as e:
             return jsonify({'error': str(e)}), 500
             
-            
-album_art_cache = {}
-cache_lock = threading.Lock()
 
 @app.route('/api/search', methods=['POST'])
 def search_music():
@@ -387,6 +384,27 @@ def get_album_art():
         logger.error(f"Error fetching album art for {source}/{media_type}/{item_id}: {e}")
         return jsonify({'album_art': ''})
 
+@app.route('/api/browse')
+def browse_downloads():
+    try:
+        files = []
+        for root, dirs, filenames in os.walk(DOWNLOAD_DIR):
+            for filename in filenames:
+                if filename.endswith(('.mp3', '.flac', '.m4a', '.opus')):
+                    filepath = os.path.join(root, filename)
+                    rel_path = os.path.relpath(filepath, DOWNLOAD_DIR)
+                    files.append({
+                        'name': rel_path,
+                        'size': os.path.getsize(filepath),
+                        'modified': os.path.getmtime(filepath)
+                    })
+        
+        files.sort(key=lambda x: x['modified'], reverse=True)
+        return jsonify(files[:100])  
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 def fetch_single_album_art(item_id, media_type, app_id):
     """Fetch album art for a single Qobuz item"""
     try:
@@ -465,7 +483,6 @@ def get_qobuz_app_id():
                 config_content = f.read()
                 #logger.debug(f"Config file content: {config_content[:200]}...")  # First 200 chars
                 
-            #Parse TOML config for app_id
             app_id_match = re.search(r'app_id\s*=\s*["\']?([^"\'\n]+)["\']?', config_content)
             
             if app_id_match:
@@ -683,25 +700,7 @@ def download_from_url():
     })
     
     
-@app.route('/api/browse')
-def browse_downloads():
-    try:
-        files = []
-        for root, dirs, filenames in os.walk(DOWNLOAD_DIR):
-            for filename in filenames:
-                if filename.endswith(('.mp3', '.flac', '.m4a', '.opus')):
-                    filepath = os.path.join(root, filename)
-                    rel_path = os.path.relpath(filepath, DOWNLOAD_DIR)
-                    files.append({
-                        'name': rel_path,
-                        'size': os.path.getsize(filepath),
-                        'modified': os.path.getmtime(filepath)
-                    })
-        
-        files.sort(key=lambda x: x['modified'], reverse=True)
-        return jsonify(files[:100])  
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+
         
 
 if __name__ == '__main__':
