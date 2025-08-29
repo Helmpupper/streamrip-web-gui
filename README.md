@@ -142,6 +142,8 @@ Check the [Streamrip documentation](https://github.com/nathom/streamrip/wiki) fo
 
 4. **Downloads disappearing from Active DL/History tabs**:  The files were still prolly downloaded, dont worry about it 
 
+5. **No images when run locally**: CORS issue 
+
 ## Disclaimer
 
 This tool is for educational purposes only. Ensure you comply with the terms of service of the streaming platforms you use. Support artists by purchasing their music.
@@ -150,3 +152,4 @@ This tool is for educational purposes only. Ensure you comply with the terms of 
 
 
 Fueled by spite
+
