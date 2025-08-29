@@ -22,7 +22,10 @@ MAX_CONCURRENT_DOWNLOADS = int(os.environ.get('MAX_CONCURRENT_DOWNLOADS', '2'))
 
 download_queue = queue.Queue()
 active_downloads = {}
+download_history = []
 sse_clients = []
+album_art_cache = {}
+cache_lock = threading.Lock()
          
 class DownloadWorker(threading.Thread):
     def __init__(self):
