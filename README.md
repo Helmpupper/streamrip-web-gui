@@ -138,11 +138,19 @@ Check the [Streamrip documentation](https://github.com/nathom/streamrip/wiki) fo
 
 2. **Downloads failing/Searches timing out**: Check that your streaming service credentials are valid and properly configured in streamrip. Tidal will timeout, Deezer will throw errors.
 
-3. **Unable to open database file**: Check paths inside container and configure config.toml inside the container if need be.
+3. **Downloads disappearing from Active DL/History tabs**:  The files were still prolly downloaded, dont worry about it I'll fix it later it was pissing me off
 
-4. **Downloads disappearing from Active DL/History tabs**:  The files were still prolly downloaded, dont worry about it 
+4. **No images when run locally**: CORS issue
 
-5. **No images when run locally**: CORS issue 
+5. Unable to open database file/Failed to parse JSON Error: This occurs when the config file inside the container has wrong paths. Fix it with:
+```bash
+docker exec -it streamrip /bin/bash
+sed -i 's|/home/YOURUSERNAME/StreamripDownloads|/music|g' /config/streamrip/config.toml
+sed -i 's|/home/YOURUSERNAME/.config/streamrip/|/config/streamrip/|g' /config/streamrip/config.toml
+exit
+```
+  Note to replace `YOURUSERNAME` with, you guessed it, your username.
+
 
 ## Disclaimer
 
@@ -152,4 +160,5 @@ This tool is for educational purposes only. Ensure you comply with the terms of 
 
 
 Fueled by spite
+
 
