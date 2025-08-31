@@ -1,0 +1,18 @@
+---
+services:    
+  streamrip:
+        build: ./streamrip-web
+        container_name: streamrip
+        user: "1000:1000" 
+        environment:
+          - HOME=/config
+          - XDG_CONFIG_HOME=/config
+          - STREAMRIP_CONFIG=/config/streamrip/config.toml
+          - DOWNLOAD_DIR=/music
+          - MAX_CONCURRENT_DOWNLOADS=2
+        volumes:
+          - /home/me/.config/streamrip:/config/streamrip:rw
+          - /home/me/media-server/data/Music:/music:rw
+        ports:
+          - "5002:5000"
+        restart: unless-stopped
