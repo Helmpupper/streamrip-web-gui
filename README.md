@@ -61,8 +61,8 @@ Follow the [Streamrip configuration guide](https://github.com/nathom/streamrip/w
       - DOWNLOAD_DIR=/music
       - MAX_CONCURRENT_DOWNLOADS=1
     volumes:
-      - /home/travis/.config/streamrip:/config/streamrip:rw
-      - /home/travis/media-server/data/Music:/music:rw
+      - /home/YOURUSERNAME/.config/streamrip:/config/streamrip:rw
+      - /home/YOURUSERNAME/media-server/data/Music:/music:rw
     ports:
       - "5002:5000"
     restart: unless-stopped
@@ -94,8 +94,8 @@ services:
           - DOWNLOAD_DIR=/music
           - MAX_CONCURRENT_DOWNLOADS=2
         volumes:
-          - /home/me/.config/streamrip:/config/streamrip:rw
-          - /home/me/media-server/data/Music:/music:rw
+          - /home/YOURUSERNAME/.config/streamrip:/config/streamrip:rw
+          - /home/YOURUSERNAME/media-server/data/Music:/music:rw
         ports:
           - "5002:5000"
         restart: unless-stopped
@@ -186,6 +186,7 @@ This tool is for educational purposes only. Ensure you comply with the terms of 
 
 
 Fueled by spite
+
 
 
 
