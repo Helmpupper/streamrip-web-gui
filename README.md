@@ -70,7 +70,7 @@ Follow the [Streamrip configuration guide](https://github.com/nathom/streamrip/w
 
 2: run with `docker-compose up`
 
-3. Access the web interface at `http://localhost:5002`
+3: Access the web interface at `http://localhost:5002`
 
 ### Option 1: Docker
 
@@ -186,6 +186,7 @@ This tool is for educational purposes only. Ensure you comply with the terms of 
 
 
 Fueled by spite
+
 
 
 
