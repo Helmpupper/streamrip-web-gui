@@ -52,7 +52,7 @@ Follow the [Streamrip configuration guide](https://github.com/nathom/streamrip/w
 ```
   streamrip:
     image: anoddname/streamrip-web-gui:latest 
-    container_name: streamrip-test
+    container_name: streamrip-web
     user: "1000:1000"
     environment:
       - HOME=/config
@@ -72,7 +72,7 @@ Follow the [Streamrip configuration guide](https://github.com/nathom/streamrip/w
 
 3: Access the web interface at `http://localhost:5002`
 
-### Option 1: Docker
+### Option 2: Docker
 
 1. Clone the repository:
 ```bash
@@ -108,7 +108,7 @@ docker-compose up -d --build
 
 4. Access the web interface at `http://localhost:5002`
 
-### Option 2: Manual Installation
+### Option 3: Manual Installation
 
 1. Clone this repository:
 ```bash
@@ -186,6 +186,7 @@ This tool is for educational purposes only. Ensure you comply with the terms of 
 
 
 Fueled by spite
+
 
 
 
