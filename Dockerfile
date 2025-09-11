@@ -20,7 +20,8 @@ RUN pip install --no-cache-dir \
     flask \
     flask-cors \
     streamrip \
-    gunicorn
+    gunicorn \
+    gevent
 
 # Copy application files
 COPY app.py /app/
@@ -37,5 +38,5 @@ USER 1000:1000
 # Expose port
 EXPOSE 5000
 
-# Run with gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "--timeout", "300", "app:app"]
+# Run with aggressive worker recycling
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--worker-class", "gevent", "--workers", "2", "--timeout", "60", "app:app"]
