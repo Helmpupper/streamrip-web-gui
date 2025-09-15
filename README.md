@@ -46,7 +46,33 @@ rip config
 ```
 Follow the [Streamrip configuration guide](https://github.com/nathom/streamrip/wiki/Configuration) to set up your credentials.
 
-### Option 1: Docker (Recommended)
+### Option 1: Pre-built workflow. 
+1: Add this to your `docker-compose.yml`
+
+```
+  streamrip:
+    image: anoddname/streamrip-web-gui:latest 
+    container_name: streamrip-web
+    user: "1000:1000"
+    environment:
+      - HOME=/config
+      - XDG_CONFIG_HOME=/config
+      - STREAMRIP_CONFIG=/config/streamrip/config.toml
+      - DOWNLOAD_DIR=/music
+      - MAX_CONCURRENT_DOWNLOADS=1
+    volumes:
+      - /home/YOURUSERNAME/.config/streamrip:/config/streamrip:rw
+      - /home/YOURUSERNAME/media-server/data/Music:/music:rw
+    ports:
+      - "5002:5000"
+    restart: unless-stopped
+```
+
+2: run with `docker-compose up`
+
+3: Access the web interface at `http://localhost:5002`
+
+### Option 2: Docker
 
 1. Clone the repository:
 ```bash
@@ -68,8 +94,8 @@ services:
           - DOWNLOAD_DIR=/music
           - MAX_CONCURRENT_DOWNLOADS=2
         volumes:
-          - /home/me/.config/streamrip:/config/streamrip:rw
-          - /home/me/media-server/data/Music:/music:rw
+          - /home/YOURUSERNAME/.config/streamrip:/config/streamrip:rw
+          - /home/YOURUSERNAME/media-server/data/Music:/music:rw
         ports:
           - "5002:5000"
         restart: unless-stopped
@@ -82,7 +108,7 @@ docker-compose up -d --build
 
 4. Access the web interface at `http://localhost:5002`
 
-### Option 2: Manual Installation
+### Option 3: Manual Installation
 
 1. Clone this repository:
 ```bash
@@ -160,5 +186,9 @@ This tool is for educational purposes only. Ensure you comply with the terms of 
 
 
 Fueled by spite
+
+
+
+
 
 

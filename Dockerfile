@@ -8,6 +8,10 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Create a non-root user
+RUN groupadd -g 1000 appuser && \
+    useradd -r -u 1000 -g appuser appuser
+
 # Set working directory
 WORKDIR /app
 
@@ -16,21 +20,23 @@ RUN pip install --no-cache-dir \
     flask \
     flask-cors \
     streamrip \
-    gunicorn
+    gunicorn \
+    gevent
 
 # Copy application files
 COPY app.py /app/
 COPY templates /app/templates/
 COPY static /app/static/
 
-# Create necessary directories - FIXED: Use /config instead of /root
-RUN mkdir -p /downloads /logs /config/streamrip
+# Create necessary directories with proper ownership
+RUN mkdir -p /downloads /logs /config/streamrip && \
+    chown -R 1000:1000 /downloads /logs /config
 
-# Create a basic streamrip config in the correct location
-RUN HOME=/config rip config --non-interactive || true
+# Switch to non-root user
+USER 1000:1000
 
 # Expose port
 EXPOSE 5000
 
-# Run with gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "--timeout", "300", "app:app"]
+# Run with aggressive worker recycling
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--worker-class", "gevent", "--workers", "2", "--timeout", "60", "app:app"]
