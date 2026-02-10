@@ -437,6 +437,7 @@ button:disabled {
     letter-spacing: 0.5px;
 }
 
+/* Search Styles */
 .search-container {
     margin-bottom: 20px;
 }
@@ -596,6 +597,7 @@ button:disabled {
     flex-shrink: 0;
 }
 
+/* Scrollbar Styling */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -614,6 +616,7 @@ button:disabled {
     background: var(--text-tertiary);
 }
 
+/* Loading animation */
 @keyframes pulse {
     0% { opacity: 0.3; }
     50% { opacity: 0.6; }
@@ -658,6 +661,7 @@ button:disabled {
     background: var(--border);
 }
 
+/* Add to your style.css file */
 .section {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
@@ -700,4 +704,130 @@ button:disabled {
 
 .tabs-section .tabs {
     margin-bottom: 20px;
+}
+
+/* error etyles */
+.error-state {
+    background: rgba(255, 70, 70, 0.1);
+    border: 2px solid #ff4646;
+    border-radius: 4px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.error-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ff4646;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+.error-message {
+    font-size: 14px;
+    color: #ff6b6b;
+    margin-bottom: 15px;
+    line-height: 1.6;
+    font-weight: 500;
+}
+
+.error-details {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 70, 70, 0.3);
+}
+
+.error-detail-line {
+    font-size: 12px;
+    color: #999;
+    margin: 5px 0;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+.error-traceback {
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.error-traceback summary {
+    font-size: 12px;
+    color: #aaa;
+    padding: 8px 0;
+    user-select: none;
+    list-style: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.error-traceback summary:hover {
+    color: #ff6b6b;
+}
+
+.error-traceback summary::-webkit-details-marker {
+    display: none;
+}
+
+.error-traceback[open] summary {
+    color: #ff6b6b;
+    margin-bottom: 10px;
+}
+
+.error-traceback pre {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 70, 70, 0.3);
+    border-radius: 4px;
+    padding: 12px;
+    overflow-x: auto;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #ddd;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.error-traceback pre::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.error-traceback pre::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.error-traceback pre::-webkit-scrollbar-thumb {
+    background: rgba(255, 70, 70, 0.5);
+    border-radius: 4px;
+}
+
+.error-traceback pre::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 70, 70, 0.7);
+}
+
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: #666;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+    .error-state {
+        padding: 15px;
+    }
+    
+    .error-title {
+        font-size: 16px;
+    }
+    
+    .error-message {
+        font-size: 13px;
+    }
+    
+    .error-traceback pre {
+        font-size: 10px;
+        padding: 10px;
+    }
 }

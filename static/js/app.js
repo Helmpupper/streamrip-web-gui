@@ -384,6 +384,36 @@ async function searchMusic() {
         
         const data = await response.json();
         
+        // error handling new
+        if (!response.ok) {
+            const errorMsg = data.error || 'Search failed';
+            let errorHtml = `<div class="error-state">
+                <div class="error-title">⚠ SEARCH ERROR</div>
+                <div class="error-message">${escapeHtml(errorMsg)}</div>`;
+            
+            if (data.debug_info) {
+                errorHtml += `<div class="error-details">`;
+                
+                if (data.debug_info.return_code !== undefined) {
+                    errorHtml += `<div class="error-detail-line">Return Code: ${data.debug_info.return_code}</div>`;
+                }
+                
+                if (data.debug_info.stdout_preview) {
+                    errorHtml += `<details class="error-traceback">
+                        <summary>▼ Show Technical Details</summary>
+                        <pre>${escapeHtml(data.debug_info.stdout_preview)}</pre>
+                    </details>`;
+                }
+                
+                errorHtml += `</div>`;
+            }
+            
+            errorHtml += `</div>`;
+            resultsDiv.innerHTML = errorHtml;
+            updatePaginationControls();
+            return;
+        }
+        
         if (data.message) {
             resultsDiv.innerHTML = `<div class="empty-state">${data.message.toUpperCase()}</div>`;
             updatePaginationControls();
@@ -397,8 +427,22 @@ async function searchMusic() {
         }
     } catch (error) {
         console.error('Search error:', error);
-        resultsDiv.innerHTML = '<div class="empty-state">SEARCH FAILED: ' + error.message.toUpperCase() + '</div>';
+        resultsDiv.innerHTML = `<div class="error-state">
+            <div class="error-title">⚠ CONNECTION ERROR</div>
+            <div class="error-message">${escapeHtml(error.message)}</div>
+        </div>`;
+        updatePaginationControls();
     }
+}
+
+// Helper function to escape HTML
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 function displayCurrentPage() {

@@ -11,7 +11,11 @@ import shutil
 import re
 import json
 
-logging.basicConfig(level=logging.INFO)
+#new logging config
+logging.basicConfig(
+    level=logging.DEBUG,  
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
@@ -240,7 +244,16 @@ def search_music():
     search_type = data.get('type', 'album')
     source = data.get('source', 'qobuz')
     
+    # new logging
+    logger.info("=" * 60)
+    logger.info("SEARCH REQUEST RECEIVED")
+    logger.info(f"Query: '{query}'")
+    logger.info(f"Type: {search_type}")
+    logger.info(f"Source: {source}")
+    logger.info("=" * 60)
+    
     if not query:
+        logger.warning("No query provided")
         return jsonify({'error': 'Query required'}), 400
     
     if source == 'soundcloud' and search_type in ['album', 'artist']:
@@ -257,51 +270,173 @@ def search_music():
         with tempfile.NamedTemporaryFile(mode='w+', suffix='.txt', delete=False) as tmp_file:
             tmp_path = tmp_file.name
         
+        logger.info(f"Created temp file: {tmp_path}")
+        
         cmd = ['rip']
         if os.path.exists(STREAMRIP_CONFIG):
             cmd.extend(['--config-path', STREAMRIP_CONFIG])
+            logger.info(f"Using config file: {STREAMRIP_CONFIG}")
+        else:
+            logger.warning(f"Config file not found at: {STREAMRIP_CONFIG}")
         
         cmd.extend(['search', '--output-file', tmp_path])
         cmd.extend([source, search_type, query])
+        
+        logger.info(f"Executing command: {' '.join(cmd)}")
+        
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        
+        logger.info(f"Command completed with return code: {result.returncode}")
+        
+        if result.stdout:
+            logger.info(f"STDOUT ({len(result.stdout)} chars total):\n{result.stdout}")
+        else:
+            logger.info("STDOUT: (empty)")
+            
+        if result.stderr:
+            logger.warning(f"STDERR ({len(result.stderr)} chars total):\n{result.stderr}")
+        else:
+            logger.info("STDERR: (empty)")
+        
+        if result.returncode != 0:
+            logger.error(f"Streamrip command failed with return code {result.returncode}")
+            error_msg = "Streamrip search failed"
+            
+            if result.stdout:
+                if 'InvalidAppSecretError' in result.stdout:
+                    error_msg = "Invalid Qobuz app secrets. Update your config with valid secrets or run 'rip config --update' in the container."
+                elif 'Traceback' in result.stdout:
+                    error_msg = "Streamrip encountered an error (check logs for full traceback)"
+                elif 'authentication' in result.stdout.lower():
+                    error_msg = "Authentication failed - check your Qobuz credentials in config"
+                elif 'credentials' in result.stdout.lower():
+                    error_msg = "Invalid credentials - check your Qobuz configuration"
                 
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)             
+            return jsonify({
+                'error': error_msg,
+                'debug_info': {
+                    'return_code': result.returncode,
+                    'stdout_preview': result.stdout if result.stdout else '',  # Send full output
+                    'stderr_preview': result.stderr if result.stderr else '',
+                    'command': ' '.join(cmd)
+                }
+            }), 500
+        
+        # Check if temp file exists and has content
+        if os.path.exists(tmp_path):
+            file_size = os.path.getsize(tmp_path)
+            logger.info(f"Temp file exists, size: {file_size} bytes")
+        else:
+            logger.error(f"Temp file does not exist: {tmp_path}")
+            
         results = []
         
         try:
-                with open(tmp_path, 'r') as f:
-                    content = f.read()
+            with open(tmp_path, 'r') as f:
+                content = f.read()
+                logger.info(f"File content length: {len(content)} characters")
+                logger.debug(f"File content (first 500 chars):\n{content[:500]}")
+                
+                if not content or content.strip() == '':
+                    logger.warning("Temp file is empty!")
+                    return jsonify({
+                        'results': [],
+                        'query': query,
+                        'source': source,
+                        'total_count': 0,
+                        'message': 'No results found. The search returned empty results.',
+                        'debug_info': {
+                            'return_code': result.returncode,
+                            'stdout': result.stdout[:200] if result.stdout else '',
+                            'stderr': result.stderr[:200] if result.stderr else ''
+                        }
+                    })
+                
+                try:
+                    search_data = json.loads(content)
+                    logger.info(f"Successfully parsed JSON with {len(search_data)} items")
                     
-                    try:
-                        search_data = json.loads(content)
-                        for item in search_data:
-                            item_id = item.get('id', '')
-                            media_type = item.get('media_type', search_type)  
-                            url = construct_url(item.get('source', source), media_type, item_id)
+                    for idx, item in enumerate(search_data):
+                        item_id = item.get('id', '')
+                        media_type = item.get('media_type', search_type)  
+                        url = construct_url(item.get('source', source), media_type, item_id)
+                        
+                        desc = item.get('desc', '')
+                        artist = ''
+                        title = desc
+                        
+                        if ' by ' in desc:
+                            parts = desc.rsplit(' by ', 1)
+                            title = parts[0]
+                            artist = parts[1]
+                        
+                        result_item = {
+                            'id': item_id,
+                            'service': item.get('source', source),
+                            'type': media_type, 
+                            'artist': artist if artist else desc,
+                            'title': title if artist else '',
+                            'desc': desc,
+                            'url': url,
+                            'album_art': ''
+                        }
+                        results.append(result_item)
+                        
+                        if idx < 3:  # Log first 3 results
+                            logger.debug(f"Result {idx + 1}: {result_item}")
                             
-                            desc = item.get('desc', '')
-                            artist = ''
-                            title = desc
-                            
-                            if ' by ' in desc:
-                                parts = desc.rsplit(' by ', 1)
-                                title = parts[0]
-                                artist = parts[1]
-                            
-                            results.append({
-                                'id': item_id,
-                                'service': item.get('source', source),
-                                'type': media_type, 
-                                'artist': artist if artist else desc,
-                                'title': title if artist else '',
-                                'desc': desc,
-                                'url': url,
-                                'album_art': ''  #Empty initially, will be loaded on demand
-                            })
-                    except json.JSONDecodeError as e:
-                        logger.error(f"Failed to parse JSON: {e}")
+                except json.JSONDecodeError as e:
+                    logger.error("=" * 60)
+                    logger.error("JSON PARSE ERROR")
+                    logger.error(f"Error: {e}")
+                    logger.error(f"Error position: line {e.lineno}, column {e.colno}")
+                    logger.error(f"Content length: {len(content)} characters")
+                    logger.error(f"Content type: {type(content)}")
+                    logger.error(f"Content repr: {repr(content[:200])}")
+                    logger.error("-" * 60)
+                    logger.error(f"FULL CONTENT (all {len(content)} chars):")
+                    logger.error(content)
+                    logger.error("=" * 60)
+                    
+                    # Also log what streamrip actually output
+                    logger.error("STREAMRIP STDOUT:")
+                    logger.error(result.stdout if result.stdout else "(empty)")
+                    logger.error("-" * 60)
+                    logger.error("STREAMRIP STDERR:")
+                    logger.error(result.stderr if result.stderr else "(empty)")
+                    logger.error("=" * 60)
+                    
+                    return jsonify({
+                        'error': 'Failed to parse search results',
+                        'debug_info': {
+                            'parse_error': str(e),
+                            'content_length': len(content),
+                            'content_preview': content[:500],
+                            'full_content': content,  # Include full content in response
+                            'stdout': result.stdout,
+                            'stderr': result.stderr
+                        }
+                    }), 500
+                    
+        except FileNotFoundError:
+            logger.error(f"Temp file not found: {tmp_path}")
+            return jsonify({
+                'error': 'Search output file not found',
+                'debug_info': {
+                    'temp_path': tmp_path,
+                    'return_code': result.returncode
+                }
+            }), 500
+            
         finally:
             if os.path.exists(tmp_path):
-                os.remove(tmp_path)
+                try:
+                    os.remove(tmp_path)
+                    logger.debug(f"Removed temp file: {tmp_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to remove temp file: {e}")
+        
+        logger.info(f"Returning {len(results)} results")
         
         return jsonify({
             'results': results,
@@ -310,9 +445,17 @@ def search_music():
             'total_count': len(results)
         })
         
+    except subprocess.TimeoutExpired:
+        logger.error("Search command timed out after 30 seconds")
+        return jsonify({'error': 'Search timed out'}), 500
     except Exception as e:
-        logger.error(f"Search error: {e}")
-        return jsonify({'error': str(e)}), 500
+        logger.exception(f"Unexpected error during search: {e}")
+        return jsonify({
+            'error': str(e),
+            'debug_info': {
+                'exception_type': type(e).__name__
+            }
+        }), 500
 
 @app.route('/api/album-art', methods=['GET'])
 def get_album_art():
@@ -708,4 +851,8 @@ def download_from_url():
         
 
 if __name__ == '__main__':
+    logger.info("Starting Streamrip Web application...")
+    logger.info(f"Config path: {STREAMRIP_CONFIG}")
+    logger.info(f"Download directory: {DOWNLOAD_DIR}")
+    logger.info(f"Max concurrent downloads: {MAX_CONCURRENT_DOWNLOADS}")
     app.run(host='0.0.0.0', port=5000, debug=False)
